@@ -4,16 +4,13 @@
 (function () {
   "use strict";
 
-  const GIPHY_API_URL = "https://api.giphy.com/v1/gifs/search";
-  const DICT_API_URL = "https://api.dictionaryapi.dev/api/v2/entries/en";
+  const WORKER_URL = "https://gifdict-api.carolineli6023.workers.dev";
   const MIN_WORD_LENGTH = 3;
 
   let tooltip = null;
-  let giphyApiKey = "";
 
-  // Load API key from storage
-  chrome.storage.sync.get(["giphyApiKey", "enabled"], (result) => {
-    giphyApiKey = result.giphyApiKey || "";
+  // Load settings from storage
+  chrome.storage.sync.get(["enabled"], (result) => {
     if (result.enabled === false) return; // extension disabled
     document.addEventListener("dblclick", onDoubleClick);
     document.addEventListener("click", dismissTooltip);
@@ -32,39 +29,50 @@
     return word.length >= MIN_WORD_LENGTH ? word.toLowerCase() : null;
   }
 
+  function getSentenceAround(selection) {
+    const node = selection.anchorNode;
+    if (!node || !node.textContent) return null;
+    const text = node.textContent;
+    const offset = selection.anchorOffset;
+    // Find sentence boundaries around the cursor
+    const start = Math.max(0, text.lastIndexOf(".", offset - 1) + 1);
+    const end = text.indexOf(".", offset);
+    return text.slice(start, end === -1 ? text.length : end + 1).trim();
+  }
+
   // --- API Calls ---
-  async function fetchGif(word) {
-    if (!giphyApiKey) return null;
+  async function fetchWordInfo(word, sentence) {
     try {
-      const url = `${GIPHY_API_URL}?api_key=${giphyApiKey}&q=${encodeURIComponent(word + " meaning")}&limit=1&rating=g&lang=en`;
-      const res = await fetch(url);
+      const res = await fetch(`${WORKER_URL}/api/word-info`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ word, sentence })
+      });
+      const result = await res.json();
+      console.log("Word info:", result);
+      return result;
+    } catch (e) {
+      console.error("GifDict: Word info fetch error", e);
+      return null;
+    }
+  }
+
+  async function fetchGif(query) {
+    try {
+      console.log("Giphy query:", query);
+      const res = await fetch(`${WORKER_URL}/api/gif`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query })
+      });
       const data = await res.json();
-      if (data.data && data.data.length > 0) {
-        // Use fixed_height for consistent sizing
-        return data.data[0].images.fixed_height.url;
-      }
+      return data.gifUrl || null;
     } catch (e) {
       console.error("GifDict: Giphy fetch error", e);
     }
     return null;
   }
 
-  async function fetchDefinition(word) {
-    try {
-      const res = await fetch(`${DICT_API_URL}/${encodeURIComponent(word)}`);
-      if (!res.ok) return null;
-      const data = await res.json();
-      if (data && data[0] && data[0].meanings && data[0].meanings[0]) {
-        const meaning = data[0].meanings[0];
-        const partOfSpeech = meaning.partOfSpeech || "";
-        const def = meaning.definitions[0]?.definition || "";
-        return { partOfSpeech, definition: def };
-      }
-    } catch (e) {
-      console.error("GifDict: Dictionary fetch error", e);
-    }
-    return null;
-  }
 
   // --- Tooltip ---
   function dismissTooltip() {
@@ -135,12 +143,13 @@
 
     createTooltip(e.pageX, e.pageY);
 
-    // Fetch GIF and definition in parallel
-    const [gifUrl, definition] = await Promise.all([
-      fetchGif(word),
-      fetchDefinition(word),
-    ]);
+    // Single LLM call: get definition, POS, and GIF keyword from sentence context
+    const sentence = getSentenceAround(window.getSelection());
+    const wordInfo = await fetchWordInfo(word, sentence);
+    const gifKeyword = wordInfo?.gifKeyword?.toLowerCase() || word;
+    const query = gifKeyword !== word ? `${word} ${gifKeyword}` : word;
+    const gifUrl = await fetchGif(query);
 
-    renderTooltip(word, gifUrl, definition);
+    renderTooltip(word, gifUrl, wordInfo);
   }
 })();

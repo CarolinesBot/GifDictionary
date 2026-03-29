@@ -1,0 +1,23 @@
+{
+  "name": "gifdictionary",
+  "version": "1.0.0",
+  "description": "Double-click any English word → see a GIF that visually explains it + a short definition.",
+  "main": "content.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CarolinesBot/GifDictionary.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CarolinesBot/GifDictionary/issues"
+  },
+  "homepage": "https://github.com/CarolinesBot/GifDictionary#readme",
+  "dependencies": {
+    "compromise": "^14.15.0"
+  }
+}
