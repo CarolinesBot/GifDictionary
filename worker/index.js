@@ -20,11 +20,23 @@ export default {
   },
 };
 
+const RESPONSE_FORMAT = `Return a JSON object with:
+- "partOfSpeech": the part of speech (noun, verb, adjective, adverb, etc.)
+- "definition": a short definition of the word as used in context
+- "gifKeyword": one or two keywords that are the closest synonyms of the original word in context
+
+Reply with ONLY the JSON object, no other text.`;
+
+function buildPrompt(word, sentence) {
+  if (sentence) {
+    return `Word: "${word}"\nSentence: "${sentence}"\n\nGiven the word in this sentence, ${RESPONSE_FORMAT}`;
+  }
+  return `Word: "${word}"\n\n${RESPONSE_FORMAT}`;
+}
+
 async function handleWordInfo(request, env) {
   const { word, sentence } = await request.json();
-  const prompt = sentence
-    ? `Word: "${word}"\nSentence: "${sentence}"\n\nGiven the word in this sentence, return a JSON object with:\n- "partOfSpeech": the part of speech (noun, verb, adjective, adverb)\n- "definition": a short definition of the word as used in this sentence\n- "gifKeyword": a single keyword (different from the word) best suited for searching a GIF\n\nReply with ONLY the JSON object, no other text.`
-    : `Word: "${word}"\n\nReturn a JSON object with:\n- "partOfSpeech": the part of speech (noun, verb, adjective, adverb)\n- "definition": a short definition of the word\n- "gifKeyword": one or two synonyms, separated by spaces\n\nReply with ONLY the JSON object, no other text.`;
+  const prompt = buildPrompt(word, sentence);
 
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
