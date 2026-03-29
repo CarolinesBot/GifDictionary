@@ -23,7 +23,7 @@ export default {
 const RESPONSE_FORMAT = `Return a JSON object with:
 - "partOfSpeech": the part of speech (noun, verb, adjective, adverb, etc.)
 - "definition": a short definition of the word as used in context
-- "gifKeyword": one or two keywords that are the closest synonyms of the original word in context
+- "gifKeyword": exactly ONE word that is the closest synonym of the original word in context
 
 Reply with ONLY the JSON object, no other text.`;
 

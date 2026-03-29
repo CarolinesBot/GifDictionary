@@ -50,8 +50,9 @@ GifDictionary/
 
 ## TODO
 
-- [ ] Add Chinese translation to tooltip
-- [ ] Cache results for repeated words
+- [ ] Cache Giphy API responses in Cloudflare KV (high hit rate since queries are just 1-2 words)
+- [ ] Explore ranking/selecting the best GIF from multiple Giphy results instead of always using the first one
+- [ ] Explore running a small on-device LLM via Chrome Offscreen Documents to replace the remote Claude Haiku call
 - [ ] Add pronunciation audio
 - [ ] Generate custom animations with AI instead of Giphy
 - [ ] Publish to Chrome Web Store
