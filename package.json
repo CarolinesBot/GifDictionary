@@ -17,7 +17,5 @@
     "url": "https://github.com/CarolinesBot/GifDictionary/issues"
   },
   "homepage": "https://github.com/CarolinesBot/GifDictionary#readme",
-  "dependencies": {
-    "compromise": "^14.15.0"
-  }
+  "dependencies": {}
 }

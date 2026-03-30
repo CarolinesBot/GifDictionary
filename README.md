@@ -51,6 +51,7 @@ GifDictionary/
 ## TODO
 
 - [ ] Cache Giphy API responses in Cloudflare KV (high hit rate since queries are just 1-2 words)
+- [ ] Create test set to make sure updating the models doesn't affect user experiences
 - [ ] Explore ranking/selecting the best GIF from multiple Giphy results instead of always using the first one
 - [ ] Explore running a small on-device LLM via Chrome Offscreen Documents to replace the remote Claude Haiku call
 - [ ] Add pronunciation audio
